@@ -1,5 +1,7 @@
 # TN Contraction via Pfaffian sums - 25.4.2025, C. Wille
 
+# Using https://pypi.org/project/pfapack/
+
 
 import numpy as np
 import torch
@@ -344,8 +346,6 @@ def select_BD(d,l,key_word,top_bottom):
 def Boundary_Top_Bottom(mat,top_BD,bottom_BD,d,l): 
     toplist=select_BD(d,l,top_BD,"top")
     bottomlist=select_BD(d,l,bottom_BD,"bottom")
-    # print(toplist)
-    # print(bottomlist)
     return DeleteRowColFULL(mat.toarray(),toplist+bottomlist)  
 
 
@@ -424,8 +424,6 @@ def res_order_k_mat(init_mat,positions,k,d,l,phi,theta,Bd):
     m=len(positions)
     pf=pf_sum_order_k_mat(init_mat,positions,k,d,l,phi,theta,Bd)
     factor=np.cos(phi/4)**(m-k)*(1j*np.sin(phi/4))**k
-    # print(factor)
-    # print("at order "+str(k)+" the pf sum is "+str(pf)+ "and the prefactor is "+str(factor))
     return factor*pf
 
 
@@ -456,22 +454,14 @@ def compute_alt_decomp_mat(ulist_in,phi,theta,d,l,BD1,BD2,name,circ):
         Bd="half"   
 
     while k<m:
-        # if timeperrun*binom(m,k)>cut_s:
-        #     print(str(timeperrun*binom(m,k))+" is larger then "+str(cut_s))
-        #     np.savetxt("TEMP"+namestring+"FAILED.txt", res_list2)
-        #     break
         k+=1
-        # print("this is k="+str(k))
         res=nres*res_order_k_mat(init_mat,positions,k,d,l,phi,theta,Bd)
-        # print(res)
         reslist.append([k,res])
-        # np.savetxt("TEMP"+namestring+".txt", reslist)
-        # np.save("TEMP"+namestring, np.array(reslist))
 
     result=0
     for r in reslist:
         result+=r[1]
-    # print("circ result="+str(complex(circ_res))+" pf result="+str(result))
+    print("circ result="+str(complex(circ_res))+" pf result="+str(result))
 
     return reslist    
 
@@ -529,12 +519,7 @@ def compute_alt_decomp(ulist,phi,theta,d,l,BD1,BD2,name):
     reslist=[[k,res0]]
 
     while k<m:
-        # if timeperrun*binom(m,k)>cut_s:
-        #     print(str(timeperrun*binom(m,k))+" is larger then "+str(cut_s))
-        #     np.savetxt("TEMP"+namestring+"FAILED.txt", res_list2)
-        #     break
         k+=1
-        # print("this is k="+str(k))
         res=res_order_k(init_us,positions,k,d,l,phi,theta,BD1,BD2)
         reslist.append([k,res])
         np.savetxt("TEMP"+namestring+".txt", reslist)
@@ -560,10 +545,8 @@ def GenReducedMatBatch(mat,positions,l,BD):
     if BD=="zero":
         x=2    
     rows=[]
-    # print(positions)
     for pos in positions:
         start=int(4*pos-x*l)
-        # print(start)
         end=start+4
         list=range(start,end)
         rows.append(list)
@@ -583,8 +566,6 @@ def CompPfaffianSum(mat,NMGlist,k,l,BD):
         pfs+=cpf(redmat)
         t3=time.time()
         c+=1
-        # if c<10:
-        #    print([t2-t1,t3-t2])
     return [pfs]
 
 # spit out list [k,result(k)]
@@ -615,7 +596,6 @@ def MyMethod(us,d,l,BD1,BD2,name,circ):
 
     while k<m:
         k+=1
-        # print("this is k="+str(k))
         resss=CompPfaffianSum(mat,gammas,k,l,Bd)
         pfsum=resss[0]
         reslist.append([k,gammas[0][1]**k*nres*pfsum])
@@ -785,7 +765,6 @@ def CirfromUlistManual_BD(ulist,d,l,BD1,BD2):
         n+=2     
     return  x[tuple(final_list)]
 
-# for historic reasons, the 0-0 BD conditions has its own name
 def CirfromUlistManual(ulist,d,l):
     return CirfromUlistManual_BD(ulist, d,l,"down","down")
 
@@ -816,57 +795,5 @@ def result_from_k(klist,k):
 
 def result_full(klist):
     return result_from_k(klist,len(klist))       
-
-
-
-#################### TEST ####################
-
-
-
-
-# d=4
-# l=4
-# phi=0.1
-# mgates=6
-# uc=Random_Cphase(d,l,mgates,phi)
-
-
-# l=4
-# BD1="firsthalf"
-# BD2="firsthalf"
-# A_hop=0.2
-# A_int=1.6
-
-# uh=HubbardTimeTrotter(d,l,A_hop,A_int)
-# Hop=FSim(A_hop,0)
-# IntHop=FSim(A_hop,A_int)
-
-
-
-# # print(getNAGamma(bgate(0.1)))
-# for d in [4]:
-# # ulist phi theta # Fsim(theta), Cphase(phi)
-#     d=10
-#     l=10
-    
-#     phi=0.1
-#     mgates=6
-#     for mgates in [10,12,13,14]:
-#         uc=Random_Cphase(d,l,mgates,phi)
-#         t1=time.time()
-#         # compute_alt_decomp(HubbardTimeTrotter(d,l,A_hop,A_int),A_int,A_hop,d,l,BD1,BD2,"test_new")
-#         t2=time.time()
-#         plot_shape(compute_alt_decomp_mat(uc,phi,0,d,l,BD1,BD2,"test_new",0),"orth")
-#         t3=time.time()
-#         plot_shape(MyMethod(uc,d,l,BD1,BD2,"my_test",0),"me")
-#         t4=time.time()
-#     # plt.show()
-
-#         print("m="+str(mgates)+"\ntime for new="+str(t3-t2)+"\ntime for my method="+str(t4-t3))
-
-# print(MyMethod(HubbardTimeTrotter(d,l,A_hop,A_int),d,l,BD1,BD2,"my_test"))
-
-
-
 
 
