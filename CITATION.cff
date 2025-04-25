@@ -1,1 +1,12 @@
+message: "If you use this software, please cite it as below."
 
+
+@software{PfExpansion,
+  author = {Wille, Carolin},
+  doi = {},
+  month = {4},
+  title = {{Pfaffian Expansion}},
+  url = {https://github.com/rho-tilde/BeyondMG},
+  version = {1.0},
+  year = {2024}
+}
